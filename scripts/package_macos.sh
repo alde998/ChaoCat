@@ -70,5 +70,5 @@ hdiutil verify "$DMG_TMP"
 
 mv -f "$PKG_TMP" "$DIST/$NAME.pkg"
 mv -f "$DMG_TMP" "$DIST/$NAME.dmg"
-shasum -a 256 "$DIST/$NAME.pkg" "$DIST/$NAME.dmg" > "$DIST/$NAME.sha256"
+(cd "$DIST" && shasum -a 256 "$NAME.pkg" "$NAME.dmg" > "$NAME.sha256")
 echo "Built $DIST/$NAME.pkg and $DIST/$NAME.dmg"
