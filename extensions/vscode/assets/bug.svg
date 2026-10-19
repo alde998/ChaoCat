@@ -1,0 +1,24 @@
+<svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes wing {
+      0%, 100% { transform: scaleY(0.55); opacity: 0.35; }
+      50% { transform: scaleY(1); opacity: 0.78; }
+    }
+    @keyframes bob {
+      0%, 100% { transform: translateY(1px) rotate(-6deg); }
+      50% { transform: translateY(-1px) rotate(7deg); }
+    }
+    #bug { animation: bob 320ms ease-in-out infinite; transform-origin: 14px 11px; }
+    .wing { animation: wing 160ms ease-in-out infinite; transform-origin: 14px 11px; }
+  </style>
+  <g id="bug">
+    <ellipse class="wing" cx="9" cy="8" rx="7" ry="4" fill="#9DD6FF" fill-opacity="0.48"/>
+    <ellipse class="wing" cx="19" cy="8" rx="7" ry="4" fill="#9DD6FF" fill-opacity="0.48"/>
+    <ellipse cx="14" cy="12" rx="4.6" ry="5.8" fill="#2E2B26"/>
+    <circle cx="14" cy="7.2" r="3.2" fill="#3A342B"/>
+    <circle cx="12.8" cy="6.6" r="0.7" fill="#F8F1D8"/>
+    <circle cx="15.2" cy="6.6" r="0.7" fill="#F8F1D8"/>
+    <path d="M11 16.5L7.5 19M17 16.5L20.5 19M11.3 11.5L7.5 10M16.7 11.5L20.5 10" stroke="#2E2B26" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M12.4 4.8L10.5 2.2M15.6 4.8L17.5 2.2" stroke="#2E2B26" stroke-width="1.1" stroke-linecap="round"/>
+  </g>
+</svg>

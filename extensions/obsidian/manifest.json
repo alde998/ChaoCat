@@ -1,0 +1,9 @@
+{
+  "id": "chaos-cat",
+  "name": "Chaos Cat",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Layered screen-effect desktop pet MVP for Obsidian.",
+  "author": "local-dev",
+  "isDesktopOnly": false
+}

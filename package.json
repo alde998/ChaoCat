@@ -1,0 +1,22 @@
+{
+  "name": "chaos-cat-desktop-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MVP desktop/doc pet with layered screen effects for VS Code, Obsidian, and Notion Web.",
+  "type": "module",
+  "scripts": {
+    "start": "node apps/bridge/server.mjs",
+    "bridge": "node apps/bridge/server.mjs",
+    "build:macos": "bash apps/macos/build-app.sh",
+    "package:macos": "bash scripts/package_macos.sh",
+    "smoke": "node tests/smoke.mjs"
+  },
+  "keywords": [
+    "desktop-pet",
+    "vscode-extension",
+    "obsidian-plugin",
+    "notion-extension",
+    "screen-effects"
+  ],
+  "license": "UNLICENSED"
+}

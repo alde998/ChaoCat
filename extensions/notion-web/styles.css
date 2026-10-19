@@ -1,0 +1,155 @@
+.chaos-cat-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.chaos-cat-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chaos-cat-virtual { z-index: 2; }
+.chaos-cat-dirty { z-index: 3; }
+.chaos-cat-props { z-index: 4; }
+.chaos-cat-cat { z-index: 5; }
+
+.chaos-cat-sprite {
+  position: absolute;
+  left: 70px;
+  top: calc(100vh - 180px);
+  width: 156px;
+  height: 156px;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .24));
+  transition-property: left, top;
+  transition-timing-function: cubic-bezier(.2, .82, .18, 1);
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.chaos-cat-sprite:active {
+  cursor: grabbing;
+}
+
+.chaos-cat-sprite img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.chaos-cat-poop {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  object-fit: fill;
+  border-radius: 6px;
+  opacity: .96;
+  animation: chaos-cat-plop .24s cubic-bezier(.2, 1.35, .3, 1);
+}
+
+.chaos-cat-paper {
+  position: absolute;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(255, 249, 231, .94);
+  color: #785a31;
+  border: 1px solid rgba(150, 108, 52, .24);
+  box-shadow: 0 10px 24px rgba(79, 52, 24, .16);
+  font: 700 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  transform: rotate(-7deg);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: chaos-cat-paper-out .28s cubic-bezier(.18, 1.25, .28, 1);
+}
+
+.chaos-cat-bug {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  pointer-events: none;
+  transition: left .12s linear, top .12s linear;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .18));
+}
+
+.chaos-cat-dust {
+  position: absolute;
+  color: rgba(172, 132, 76, .82);
+  font: 900 22px ui-sans-serif, system-ui;
+  pointer-events: none;
+  animation: chaos-cat-dust .42s ease-out forwards;
+}
+
+.chaos-cat-controls {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.chaos-cat-controls button {
+  min-width: 54px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, .14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .88);
+  color: #3d342d;
+  box-shadow: 0 8px 20px rgba(20, 20, 20, .08);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chaos-cat-controls button:hover {
+  background: rgba(255, 248, 232, .96);
+}
+
+@keyframes chaos-cat-plop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(.72);
+  }
+  to {
+    opacity: .96;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chaos-cat-paper-out {
+  from {
+    opacity: 0;
+    transform: translateY(16px) rotate(-16deg) scale(.84);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-7deg) scale(1);
+  }
+}
+
+@keyframes chaos-cat-dust {
+  from {
+    opacity: .9;
+    transform: translateY(0) scale(.8);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.3);
+  }
+}
+.chaos-cat-native-controls{position:fixed;right:16px;bottom:16px;display:flex;gap:6px;z-index:99999;padding:6px;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 2px 14px #0002;font:13px system-ui}
+.chaos-cat-native-controls button{min-height:44px;min-width:44px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;cursor:pointer}
+.chaos-cat-native-controls button:focus-visible{outline:2px solid #985522;outline-offset:2px}

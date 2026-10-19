@@ -1,0 +1,100 @@
+.chaos-cat-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+.chaos-cat-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chaos-cat-virtual {
+  z-index: 2;
+}
+
+.chaos-cat-dirty {
+  z-index: 3;
+}
+
+.chaos-cat-props {
+  z-index: 4;
+}
+
+.chaos-cat-cat {
+  z-index: 5;
+}
+
+.chaos-cat-sprite {
+  position: absolute;
+  left: 48px;
+  top: calc(100vh - 150px);
+  font-size: 72px;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .32));
+  transition: left .45s cubic-bezier(.2,.8,.2,1), top .45s cubic-bezier(.2,.8,.2,1), transform .2s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.chaos-cat-shit,
+.chaos-cat-kick,
+.chaos-cat-poop,
+.chaos-cat-box,
+.chaos-cat-bug {
+  position: absolute;
+  animation: chaos-cat-plop .24s cubic-bezier(.2, 1.35, .3, 1);
+}
+
+.chaos-cat-shit {
+  color: #4b2a16;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(122, 74, 36, .22);
+  font: 800 14px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.chaos-cat-kick {
+  color: #ffb454;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(255, 180, 84, .18);
+  transform: rotate(-8deg);
+}
+
+.chaos-cat-poop,
+.chaos-cat-box,
+.chaos-cat-bug {
+  font-size: 28px;
+}
+
+.chaos-cat-controls {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.chaos-cat-controls button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 12px;
+  background: rgba(20, 20, 24, .72);
+  cursor: pointer;
+}
+
+@keyframes chaos-cat-plop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(.7);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

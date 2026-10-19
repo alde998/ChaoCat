@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chaos Cat Pet MVP</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="workspace" id="workspace">
+      <section class="document-layer" id="documentLayer" contenteditable="true" spellcheck="false">
+        <h1>Chaos Cat 文档层</h1>
+        <p>这里模拟 VS Code / Obsidian / Notion 的原始文字。默认情况下，小猫只会在上方覆盖视觉效果，不会修改真实内容。</p>
+        <pre><code>function feedCat(mood) {
+  if (mood === "calm") {
+    return "purr";
+  }
+  return "tiny chaos";
+}</code></pre>
+        <p>试着在这里打字，小猫会追小飞虫。也可以点右上角按钮触发四种状态。</p>
+      </section>
+
+      <div class="effect-layer virtual-text-layer" id="virtualTextLayer" aria-hidden="true"></div>
+      <div class="effect-layer dirty-image-layer" id="dirtyImageLayer" aria-hidden="true"></div>
+      <div class="effect-layer prop-layer" id="propLayer" aria-hidden="true"></div>
+      <div class="effect-layer cat-layer" id="catLayer" aria-hidden="true">
+        <img id="catSprite" class="cat-sprite" src="/assets/cat-sit.svg" alt="">
+      </div>
+      <div class="effect-layer interaction-layer" id="interactionLayer">
+        <aside class="panel">
+          <div class="panel-title">🐈 Chaos Cat</div>
+          <div class="status" id="status">calm · bridge connecting</div>
+          <button data-action="calm">安静</button>
+          <button data-action="poopChaos">拉屎捣乱</button>
+          <button data-action="boxDive">钻箱子</button>
+          <button data-action="bugChase">追小飞虫</button>
+          <button data-action="scatter">驱赶/散落</button>
+          <button data-action="clear">清理</button>
+        </aside>
+      </div>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

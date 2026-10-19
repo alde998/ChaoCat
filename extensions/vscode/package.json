@@ -1,0 +1,79 @@
+{
+  "name": "chaos-cat",
+  "displayName": "Chaos Cat",
+  "description": "连接原生桌面小猫：输入追虫、垃圾堆占位、三次排便与同步埋屎。",
+  "version": "0.1.7",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.79.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:chaosCat.triggerPoop",
+    "onCommand:chaosCat.triggerBoxDive",
+    "onCommand:chaosCat.triggerBugChase",
+    "onCommand:chaosCat.clearEffects"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Chaos Cat",
+      "properties": {
+        "chaosCat.poopImagePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to a PNG/SVG/GIF used as the poop overlay image. Empty uses the bundled asset."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "chaosCat.diagnostics",
+        "title": "Chaos Cat: 查看联动诊断"
+      },
+      {
+        "command": "chaosCat.triggerPoop",
+        "title": "Chaos Cat: Trigger Poop Chaos"
+      },
+      {
+        "command": "chaosCat.triggerBoxDive",
+        "title": "Chaos Cat: 跳垃圾堆"
+      },
+      {
+        "command": "chaosCat.triggerBugChase",
+        "title": "Chaos Cat: Trigger Bug Chase"
+      },
+      {
+        "command": "chaosCat.calm",
+        "title": "Chaos Cat: Calm"
+      },
+      {
+        "command": "chaosCat.clearEffects",
+        "title": "Chaos Cat: 立即清理所有屎"
+      },
+      {
+        "command": "chaosCat.triggerBury",
+        "title": "Chaos Cat: 调试埋屎动画"
+      },
+      {
+        "command": "chaosCat.toggleMutation",
+        "title": "Chaos Cat: 查看真实文本说明"
+      },
+      {
+        "command": "chaosCat.removePoopAtCursor",
+        "title": "Chaos Cat: 删除光标所在的单个屎标记"
+      },
+      {
+        "command": "chaosCat.insertComment",
+        "title": "Chaos Cat: 拉屎"
+      },
+      {
+        "command": "chaosCat.cleanComments",
+        "title": "Chaos Cat: 清理所有屎标记"
+      }
+    ]
+  }
+}

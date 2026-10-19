@@ -1,0 +1,37 @@
+# Local operating-system, editor, and dependency files
+.DS_Store
+._*
+.idea/
+.vscode/
+node_modules/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.log
+
+# Built applications, packages, caches, and generated review exports
+.build/
+.swiftpm/
+*.app/
+/dist/
+/exports/
+
+# Superseded native assets; current playback uses Assets/Behavior.
+/apps/macos/Assets/cat-*.gif
+/apps/macos/Assets/.cat-*
+/apps/macos/Assets/cat-overlay-animations/
+/apps/macos/Assets/imported-videos/
+
+# Generated APNG editing masters (current transparent GIFs are versioned).
+/media/behavior-masters/
+
+# Local backups, integration-test output, and contact sheets
+/docs/*backup*/
+/docs/*-validation.json
+/docs/vscode-host-failure.json
+/docs/*-preview.*
+/docs/rubbish-matte-review.png
+/docs/behavior-playground.txt
+/docs/shit-live-demo.js
