@@ -6,8 +6,6 @@ const requiredFiles = [
   "apps/bridge/server.mjs",
   "apps/macos/Package.swift",
   "apps/macos/Sources/main.swift",
-  "apps/pet-web/index.html",
-  "apps/pet-web/app.js",
   "shared/protocol.js",
   "extensions/vscode/package.json",
   "extensions/vscode/extension.js",

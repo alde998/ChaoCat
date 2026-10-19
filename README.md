@@ -53,7 +53,7 @@ node tests/run-vscode-host.mjs
 
 最后一项会打开隔离的 VS Code 扩展测试宿主、原生桌宠和本地测试桥接，只编辑临时 JavaScript 文件；验证真实输入、三次标记插入、单次撤销与重做、保存后的文件内容、埋屎删除、垃圾堆恢复、受惊狂奔，以及跨文档立即清理和延迟请求取消。用 `CHAOS_CAT_CODE_APP` 指定其他已安装的 VS Code 路径。结果为 `docs/vscode-host-validation.json`。
 
-`tests/behavior-integration.mjs` 是内存适配器测试，不能替代真实宿主验证。Obsidian / Notion 适配器仍需在对应宿主安装后验收。浏览器实验页和 [旧 MVP 文档](docs/README-legacy-mvp.md) 仅供历史参考。
+`tests/behavior-integration.mjs` 是内存适配器测试，不能替代真实宿主验证。各编辑器适配器仍需在对应宿主安装后验收。
 
 ## 打包与素材
 

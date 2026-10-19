@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
-const petRoot = path.join(repoRoot, "apps/pet-web");
 const sharedRoot = path.join(repoRoot, "shared");
 const port = Number(process.env.CHAOS_CAT_PORT || 44777);
 const host = process.env.CHAOS_CAT_HOST || "127.0.0.1";
@@ -71,11 +70,13 @@ async function serveStatic(request, response) {
   const url = new URL(request.url, `http://${request.headers.host}`);
   let pathname = decodeURIComponent(url.pathname);
 
-  let root = petRoot;
-  if (pathname.startsWith("/shared/")) {
-    root = sharedRoot;
-    pathname = pathname.replace(/^\/shared\//, "/");
+  if (!pathname.startsWith("/shared/")) {
+    response.writeHead(404);
+    response.end("Not found");
+    return;
   }
+  const root = sharedRoot;
+  pathname = pathname.replace(/^\/shared\//, "/");
 
   const filePath = path.resolve(root, pathname === "/" ? "index.html" : pathname.slice(1));
   if (!filePath.startsWith(root)) {

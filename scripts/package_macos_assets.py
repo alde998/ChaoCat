@@ -70,8 +70,8 @@ def package(destination):
     for name in ('StatusIcon.png', 'CleanupPhoto.jpg'):
         shutil.copy2(ASSETS / name, destination / 'Assets' / name)
     shutil.copy2(ASSETS / 'AppIcon.icns', destination / 'AppIcon.icns')
-    # These small bridge/web files remain available for existing integrations.
-    for relative in ('apps/bridge', 'apps/pet-web', 'shared'):
+    # Keep the bridge and shared protocol available to bundled integrations.
+    for relative in ('apps/bridge', 'shared'):
         shutil.copytree(ROOT / relative, destination / relative,
                         ignore=shutil.ignore_patterns('.DS_Store', '__pycache__', '*.map'), dirs_exist_ok=True)
     report = {
