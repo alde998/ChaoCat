@@ -57,6 +57,6 @@ node tests/run-vscode-host.mjs
 
 ## 打包与素材
 
-`npm run package:macos` 构建 App 并生成当前机器架构的 DMG；详细过程见 [macOS 构建说明](apps/macos/README.md)，体积和画质校验记录见 [软件包优化记录](docs/package-optimization.md)。
+`npm run package:macos` 构建 App，并生成当前机器架构的 `.pkg` 安装器和 `.dmg` 拖拽镜像。安装包自带 Node.js 与 VS Code 扩展；详细过程见 [macOS 构建说明](apps/macos/README.md)，原始动画的体积和画质校验记录见 [软件包优化记录](docs/package-optimization.md)。
 
 仓库包含当前全部动画、静态图片、图标源图、测试所需参考素材和构建脚本。安装包、构建缓存、历史素材副本、生成的 APNG 编辑母版与临时导出不提交；这些文件仍保留在原工作区。构建当前 App 无需重新抠图或生成动画。`scripts/` 中的历史素材处理工具可能需要额外的原视频、逐帧图片或编辑母版，不属于常规构建步骤。

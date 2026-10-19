@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+APP="/Applications/ChaosCat.app"
+VSIX="$APP/Contents/Resources/VSCode/ChaosCat.vsix"
+CODE="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+CONSOLE_USER="$(stat -f '%Su' /dev/console)"
+
+if [[ "$CONSOLE_USER" != root && "$CONSOLE_USER" != loginwindow && -x "$CODE" && -f "$VSIX" ]]; then
+  # Install into the desktop user's extensions directory, never root's.
+  /usr/bin/sudo -H -u "$CONSOLE_USER" "$CODE" --install-extension "$VSIX" --force \
+    || echo "Chaos Cat: VS Code extension installation skipped; install the bundled VSIX manually." >&2
+fi

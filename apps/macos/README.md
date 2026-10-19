@@ -4,7 +4,7 @@ macOS 原生桌面浮层：用透明、置顶、跨空间的小型 `NSPanel` 承
 
 ## 双击启动
 
-在仓库根目录执行一次 `npm run build:macos`，会生成 `apps/macos/ChaosCat.app`。之后直接在 Finder 双击这个 App 即可启动，不需要打开终端；App 会自动启动内置的本地 bridge。系统已安装 Node.js 时可使用完整的编辑器联动功能。
+在仓库根目录执行一次 `npm run build:macos`，会生成 `apps/macos/ChaosCat.app`。之后直接在 Finder 双击这个 App 即可启动，不需要打开终端；App 会自动启动内置的本地 bridge。常规本地构建使用已安装的 Node.js，分发包则自带 Node.js。
 
 这不是网页窗口，也不是一个铺满屏幕的大透明窗口。它避免拦截 IDE / 文档软件的普通点击；只有小猫窗口和控制条窗口会响应点击。
 
@@ -27,7 +27,7 @@ cd apps/macos
 swift run ChaosCatMac
 ```
 
-构建需要 Swift 工具链、Python 3 和 Pillow，可用 `CHAOS_CAT_PYTHON` 指定 Python。`npm run package:macos` 会构建 App 并生成 `dist/Chaos-Cat-macOS-arm64.dmg`（架构取决于构建机器）。
+构建需要 Swift 工具链、Python 3 和 Pillow，可用 `CHAOS_CAT_PYTHON` 指定 Python。`npm run package:macos` 从官方固定版本下载并核对 Node.js 校验和，构建包含 Node.js 与 VS Code 扩展的 App，生成 `.pkg` 安装器和 `.dmg` 拖拽镜像（架构取决于构建机器）。无 Apple Developer 签名证书时使用本地 ad-hoc 签名，无法进行 Apple 公证。
 
 App 只打包当前 Behavior 清单引用的动画、静态道具、菜单图片、App 图标和 bridge/web 运行文件。原工作区的历史 GIF、导出图和生成的编辑母版不进入安装包，也不提交到 Git；构建所需的当前素材均在仓库中。
 

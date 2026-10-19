@@ -1,0 +1,9 @@
+Chaos Cat 安装说明
+
+本安装包适用于 macOS 13 及更新版本，文件名中的 arm64 表示 Apple Silicon Mac。
+
+推荐双击同名 .pkg 安装器，完成后从“应用程序”打开 ChaosCat。若使用 DMG，也可以将 ChaosCat.app 拖到 Applications 文件夹。安装包已包含小猫动画、本地联动服务需要的 Node.js 和 VS Code 扩展。
+
+安装器会在已安装官方 Visual Studio Code 的当前用户环境中尝试安装扩展。若之后才安装 VS Code，可在 VS Code 的“扩展”视图中选择“从 VSIX 安装”，选取镜像中的 ChaosCat-VSCode.vsix；同一文件也位于 ChaosCat.app/Contents/Resources/VSCode/ChaosCat.vsix。
+
+由于此版本没有 Apple Developer 签名和公证，首次打开时 macOS 可能要求你在系统安全设置中确认。不要关闭系统安全保护。

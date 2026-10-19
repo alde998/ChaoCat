@@ -494,6 +494,7 @@ final class ChaosCatApp: NSObject {
     let fileManager = FileManager.default
     let candidates = [
       ProcessInfo.processInfo.environment["CHAOS_CAT_NODE"],
+      Bundle.main.resourceURL?.appendingPathComponent("Runtime/node").path,
       "/opt/homebrew/bin/node",
       "/usr/local/bin/node",
       "/usr/bin/node"

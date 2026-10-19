@@ -19,6 +19,17 @@ mkdir -p "$STAGING/Contents/MacOS" "$STAGING/Contents/Resources"
 cp "$BUILD_DIR/release/ChaosCatMac" "$STAGING/Contents/MacOS/ChaosCatMac"
 strip -S "$STAGING/Contents/MacOS/ChaosCatMac"
 "$PYTHON" "$REPO_ROOT/scripts/package_macos_assets.py" "$STAGING/Contents/Resources"
+if [[ -n "${CHAOS_CAT_BUNDLED_NODE:-}" ]]; then
+  mkdir -p "$STAGING/Contents/Resources/Runtime"
+  cp "$CHAOS_CAT_BUNDLED_NODE" "$STAGING/Contents/Resources/Runtime/node"
+  cp "$CHAOS_CAT_BUNDLED_NODE_LICENSE" "$STAGING/Contents/Resources/Runtime/LICENSE"
+  chmod 755 "$STAGING/Contents/Resources/Runtime/node"
+  codesign --force --sign - "$STAGING/Contents/Resources/Runtime/node"
+fi
+if [[ -n "${CHAOS_CAT_BUNDLED_VSIX:-}" ]]; then
+  mkdir -p "$STAGING/Contents/Resources/VSCode"
+  cp "$CHAOS_CAT_BUNDLED_VSIX" "$STAGING/Contents/Resources/VSCode/ChaosCat.vsix"
+fi
 
 cat > "$STAGING/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
