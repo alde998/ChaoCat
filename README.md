@@ -25,7 +25,7 @@ npm run build:macos
 open apps/macos/ChaosCat.app
 ```
 
-App 自动启动桥接。VS Code 扩展位于 `extensions/vscode`，兼容 VS Code 1.79 及以上。构建并安装当前版本：
+App 自动启动桥接。通过分发 DMG 安装时，若已安装正式版 VS Code，小猫首次启动会自动为当前用户安装内置扩展；若之后才安装 VS Code，可在小猫菜单中选择“安装 VS Code 插件”。扩展兼容 VS Code 1.79 及以上。开发环境也可手动构建并安装：
 
 ```sh
 python3 scripts/package_vscode.py

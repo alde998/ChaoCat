@@ -580,12 +580,14 @@ private func desktopArtwork(_ name: String, size: NSSize) -> NSImage? {
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var pet: ChaosCatApp?
   private var statusItem: NSStatusItem?
+  private let vscodeInstaller = VSCodeExtensionInstaller()
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     NSApp.setActivationPolicy(.accessory)
     pet = ChaosCatApp()
     pet?.show()
     setupStatusItem()
+    vscodeInstaller.installIfNeeded()
   }
 
   func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -619,6 +621,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       clearItem.setAccessibilityHelp("点击监狱鱼眼照片，清理所有屎和垃圾堆")
     }
     menu.addItem(clearItem)
+    let vscodeItem = NSMenuItem(title: "安装 VS Code 插件", action: #selector(VSCodeExtensionInstaller.installFromMenu), keyEquivalent: "")
+    vscodeItem.target = vscodeInstaller
+    menu.addItem(vscodeItem)
     menu.addItem(.separator())
 
     let debugMenu = NSMenu()

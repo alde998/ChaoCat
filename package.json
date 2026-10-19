@@ -1,6 +1,6 @@
 {
   "name": "chaos-cat-desktop-pet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "MVP desktop/doc pet with layered screen effects for VS Code, Obsidian, and Notion Web.",
   "type": "module",
