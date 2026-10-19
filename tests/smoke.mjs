@@ -11,8 +11,6 @@ const requiredFiles = [
   "extensions/vscode/extension.js",
   "extensions/obsidian/manifest.json",
   "extensions/obsidian/main.js",
-  "extensions/notion-web/manifest.json",
-  "extensions/notion-web/content.js"
 ];
 
 const missing = [];

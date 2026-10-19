@@ -271,7 +271,7 @@ final class BehaviorController {
     // Old installed hosts cannot acknowledge the current request protocol.
     if source == "vscode-extension",payload["clientId"] as? String == nil { return }
     let owner=payload["clientId"] as? String ?? source
-    if ["vscode-extension","obsidian-plugin","notion-web-extension"].contains(source),payload["active"] as? Bool == true {
+    if ["vscode-extension","obsidian-plugin"].contains(source),payload["active"] as? Bool == true {
       if editor != owner { editorURI=nil }
       editor=owner;editorSource=source;editorSeen=Date()
       if let uri=payload["uri"] as? String ?? (payload["anchor"] as? [String:Any])?["uri"] as? String { editorURI=uri }

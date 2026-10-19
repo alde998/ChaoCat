@@ -11,7 +11,7 @@ macOS 原生桌面浮层：用透明、置顶、跨空间的小型 `NSPanel` 承
 重要边界：
 
 - 原生桌宠只负责小猫身体动作和短暂道具特效。
-- 真实 `/shit/` 文本插入由 VS Code / Obsidian / Notion Web 集成执行。
+- 真实 `/shit/` 文本插入由 VS Code / Obsidian 集成执行。
 - 原生桌宠不会再在桌面随机排布 `shit` 文字。
 
 先在 repo 根目录启动 bridge：

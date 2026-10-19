@@ -18,11 +18,9 @@
 ## What is included
 
 - `apps/bridge`：本机事件中继服务，零依赖 Node.js HTTP + WebSocket。
-- `apps/pet-web`：浏览器可运行的小猫分层效果实验场，用来调试状态和视觉层。
 - `apps/macos`：真正的 AppKit 桌面宠物 overlay。使用多个小型透明浮窗承载猫和短暂特效，避免一个全屏透明窗口挡住 IDE / 文档软件点击。
 - `extensions/vscode`：VS Code extension，默认用 decorations 做视觉捣乱；可选插入/清理带标记注释。
 - `extensions/obsidian`：Obsidian plugin 原型，用 DOM overlay 做文档视觉层；可选插入/清理 Markdown 注释。
-- `extensions/notion-web`：Notion Web 浏览器扩展 content script，走页面内图层与文本位置识别，1:1 复刻核心交互。
 
 ## Run the local MVP
 
@@ -113,19 +111,6 @@ Copy `extensions/obsidian` into an Obsidian vault under:
 ```
 
 Then enable the plugin in Obsidian community plugin settings. Commands mirror the MVP states and default to overlay-only visual effects.
-
-## Notion Web extension
-
-Load `extensions/notion-web` as an unpacked Chromium extension.
-
-It runs directly inside Notion Web and mirrors the MVP interactions:
-
-- real `//shit//` insertion and poop overlays aligned to text
-- click cat to trigger rage run during poop
-- fast drag cat over existing shit to clean one by one
-- box-dive, bug-chase, and rest behaviors with the same bridge actions as VS Code
-
-After reloading the extension, refresh the Notion tab to activate the content script.
 
 ## Safety defaults
 

@@ -159,9 +159,6 @@ final class ChaosCatApp: NSObject {
       return bundle.contains("vscode") || bundle.contains("vscodium")
     case "obsidian-plugin":
       return bundle.contains("obsidian")
-    case "notion-web-extension":
-      return bundle.contains("chrome") || bundle.contains("edge") || bundle.contains("safari")
-        || bundle.contains("firefox") || bundle.contains("notion")
     default:
       return false
     }
