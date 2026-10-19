@@ -12,7 +12,7 @@ macOS 桌宠负责动画和屏幕移动；VS Code 扩展负责真实文档坐标
 - 菜单“调试动作”立即切换到拉屎、跳垃圾堆、追虫或休息；点击监狱鱼眼照片按钮取消当前动作，立即清除所有小猫屎标记和桌面效果。
 - 当前透明 GIF 保留原始尺寸和逐帧时序；打包仅复用逐帧验证完全相同的镜像动画，不降低动画质量。
 
-完整规则见 [行为规则](docs/behavior-rules-20261014.md)，素材和实现见 [实现说明](docs/behavior-implementation-20261014.md)。
+详细规则、素材映射和验证记录保存在本地 `docs/`，不随仓库分发。
 
 ## 运行
 
@@ -57,7 +57,7 @@ node tests/run-vscode-host.mjs
 
 ## 打包与素材
 
-`npm run package:macos` 构建 App，并生成当前机器架构的 `.pkg` 安装器和 `.dmg` 拖拽镜像。安装包自带 Node.js 与 VS Code 扩展；详细过程见 [macOS 构建说明](apps/macos/README.md)，原始动画的体积和画质校验记录见 [软件包优化记录](docs/package-optimization.md)。
+`npm run package:macos` 构建 App，并生成当前机器架构的 `.pkg` 安装器和 `.dmg` 拖拽镜像。安装包自带 Node.js 与 VS Code 扩展；详细过程见 [macOS 构建说明](apps/macos/README.md)。原始动画的体积和画质校验记录保存在本地 `docs/`。
 
 当前公开 DMG 使用本地 ad-hoc 签名，尚未经过 Apple 公证。另一台 Mac 首次打开时若提示无法验证开发者，可按 [Apple 的“仍要打开”步骤](https://support.apple.com/zh-cn/102445)为单个 App 放行；若提示软件损坏或会损坏电脑，应停止安装。要让下载后正常双击打开，需要 Developer ID Application 证书与 Apple 公证。
 

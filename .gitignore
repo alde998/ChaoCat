@@ -27,11 +27,6 @@ __pycache__/
 # Generated APNG editing masters (current transparent GIFs are versioned).
 /media/behavior-masters/
 
-# Local backups, integration-test output, and contact sheets
-/docs/*backup*/
-/docs/*-validation.json
-/docs/vscode-host-failure.json
-/docs/*-preview.*
-/docs/rubbish-matte-review.png
-/docs/behavior-playground.txt
-/docs/shit-live-demo.js
+# Local development notes, backups, test reports, and previews
+/docs/*
+!/docs/.gitkeep
