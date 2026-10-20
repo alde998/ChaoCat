@@ -67,7 +67,7 @@ def package(destination):
     for name in sorted(runtime_files | {'poop.png', 'rubbish.png', 'rubbish-left.png'}):
         shutil.copy2(behavior / name, out / name)
     (out / 'catalog.json').write_text(json.dumps(catalog, ensure_ascii=False, separators=(',', ':')) + '\n')
-    for name in ('StatusIcon.png', 'CleanupPhoto.jpg'):
+    for name in ('StatusIcon.png', 'CleanupLens.png'):
         shutil.copy2(ASSETS / name, destination / 'Assets' / name)
     shutil.copy2(ASSETS / 'AppIcon.icns', destination / 'AppIcon.icns')
     # Keep the bridge and shared protocol available to bundled integrations.

@@ -608,7 +608,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let menu = NSMenu()
     let clearItem = NSMenuItem(title: "清理", action: #selector(ChaosCatApp.clearEffects), keyEquivalent: "c")
     clearItem.target = pet
-    if let image = desktopArtwork("CleanupPhoto.jpg", size: NSSize(width: 88, height: 88)) {
+    if let image = desktopArtwork("CleanupLens.png", size: NSSize(width: 88, height: 88)) {
       // Use a native menu item: the whole photo remains clickable, with
       // standard hover highlighting, keyboard selection and Command-C.
       clearItem.title = ""

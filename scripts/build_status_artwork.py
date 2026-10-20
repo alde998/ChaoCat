@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Extract the supplied die-cut sticker without regenerating its pixels."""
 from pathlib import Path
-import shutil
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -90,8 +89,23 @@ def main():
     icon = Image.new('RGBA', (side, side))
     icon.alpha_composite(crop, ((side-crop.width)//2, (side-crop.height)//2))
     icon.resize((512,512), Image.Resampling.LANCZOS).save(ASSETS / 'StatusIcon.png')
-    # Keep the supplied photo itself, including the dark fisheye surround.
-    shutil.copy2(SOURCE / 'prison-fisheye.jpg', ASSETS / 'CleanupPhoto.jpg')
+    photo = Image.open(SOURCE / 'prison-fisheye.jpg').convert('RGBA')
+    scale = 4
+    outer_inset = 8
+    inner_inset = 32
+    outer = Image.new('L', (photo.width*scale, photo.height*scale))
+    inner = Image.new('L', outer.size)
+    ImageDraw.Draw(outer).ellipse((outer_inset*scale, outer_inset*scale,
+                                   (photo.width-outer_inset)*scale, (photo.height-outer_inset)*scale), fill=255)
+    ImageDraw.Draw(inner).ellipse((inner_inset*scale, inner_inset*scale,
+                                   (photo.width-inner_inset)*scale, (photo.height-inner_inset)*scale), fill=255)
+    outer = outer.resize(photo.size, Image.Resampling.LANCZOS)
+    inner = inner.resize(photo.size, Image.Resampling.LANCZOS)
+    photo.putalpha(inner)
+    lens = Image.new('RGBA', photo.size, '#000000')
+    lens.putalpha(outer)
+    lens.alpha_composite(photo)
+    lens.save(ASSETS / 'CleanupLens.png')
     preview = Image.new('RGB', (1080,620), '#ececef')
     for n,color in enumerate(('#f5f5f7','#28282b')):
         tile = Image.new('RGBA',(500,500),color)
@@ -102,7 +116,7 @@ def main():
             thumb=icon.resize((size,size),Image.Resampling.LANCZOS)
             preview.paste(thumb,(35+n*540+i*92,540),thumb)
     preview.save(PREVIEW / 'sticker-light-dark.png')
-    print('Saved CatSticker.png, StatusIcon.png, CleanupPhoto.jpg and light/dark preview')
+    print('Saved CatSticker.png, StatusIcon.png, CleanupLens.png and light/dark preview')
 
 
 if __name__ == '__main__':
