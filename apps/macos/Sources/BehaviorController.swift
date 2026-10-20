@@ -75,6 +75,9 @@ final class BehaviorController {
   private let emit: (String, [String: Any]) -> Void
   private let resolve: ([String: Any]) -> CGPoint?
   private let editorRect: () -> CGRect
+  private let screenFrames: () -> [CGRect]
+  private let movementArea: (CGPoint) -> CGRect
+  // Foreground-window coordinates are only for attaching local effects.
   private let workArea: () -> CGRect
   private let workIdentity: () -> String
   private let isEditorForeground: (String) -> Bool
@@ -86,13 +89,19 @@ final class BehaviorController {
   init(library: BehaviorLibrary, screen: NSScreen,
        emit: @escaping (String,[String:Any])->Void,
        resolve: @escaping ([String:Any])->CGPoint?, editorRect: @escaping ()->CGRect,
+       screenFrames: @escaping ()->[CGRect] = { NSScreen.screens.map{$0.visibleFrame} },
        workArea: @escaping ()->CGRect = { NSScreen.main?.visibleFrame ?? .zero },
+       movementArea: @escaping (CGPoint)->CGRect = { point in
+         BehaviorPolicy.movementArea(near:point,screens:NSScreen.screens.map{$0.visibleFrame})
+       },
        workIdentity: @escaping ()->String = { "desktop" },
        isEditorForeground: @escaping (String)->Bool = { _ in true },
        isEditorContext: @escaping ()->Bool = { false },
        bugChanceRoll: @escaping ()->Double = { Double.random(in:0..<1) }) {
     self.library=library;self.emit=emit;self.resolve=resolve;self.editorRect=editorRect
+    self.screenFrames=screenFrames
     self.workArea=workArea;self.workIdentity=workIdentity;self.isEditorForeground=isEditorForeground
+    self.movementArea=movementArea
     self.isEditorContext=isEditorContext;self.bugChanceRoll=bugChanceRoll
     cat=BehaviorSprite(library:library);bug=BehaviorSprite(library:library)
     cat.foot=CGPoint(x:screen.visibleFrame.minX+180,y:screen.visibleFrame.minY+160)
@@ -154,13 +163,13 @@ final class BehaviorController {
     cat.panel.ignoresMouseEvents=next == .scared
   }
   private func clamp(_ point:CGPoint)->CGPoint {
-    let r=workArea()
+    let r=movementArea(point)
     guard r.width > 240,r.height > 180 else { return point }
     return CGPoint(x:min(r.maxX-72,max(r.minX+72,point.x)),
                    y:min(r.maxY-100,max(r.minY+28,point.y)))
   }
   private func randomPoint()->CGPoint {
-    let r=workArea()
+    let r=BehaviorPolicy.randomMovementArea(screens:screenFrames())
     guard r.width > 240,r.height > 180 else { return cat.foot }
     return clamp(CGPoint(x:CGFloat.random(in:r.minX...r.maxX),y:CGFloat.random(in:r.minY...r.maxY)))
   }
@@ -381,7 +390,7 @@ final class BehaviorController {
     clampBug(CGPoint(x:point.x,y:point.y+28))
   }
   private func clampBug(_ point:CGPoint)->CGPoint {
-    let r=workArea()
+    let r=movementArea(point)
     guard r.width>80,r.height>100 else{return point}
     return CGPoint(x:min(r.maxX-24,max(r.minX+24,point.x)),
                    y:min(r.maxY-44,max(r.minY+24,point.y)))
@@ -563,7 +572,7 @@ final class BehaviorController {
   }
   private func rubbishDirection(to point:CGPoint)->PetFacing {
     let preferred:PetFacing=point.x<cat.foot.x ? .left:.right
-    let area=workArea(),minimum=BehaviorPolicy.rubbishTakeoffDistance+BehaviorPolicy.rubbishRunway
+    let area=movementArea(point),minimum=BehaviorPolicy.rubbishTakeoffDistance+BehaviorPolicy.rubbishRunway
     let leftRoom=point.x-(area.minX+72),rightRoom=(area.maxX-72)-point.x
     if preferred == .right && leftRoom<minimum && rightRoom>leftRoom {return .left}
     if preferred == .left && rightRoom<minimum && leftRoom>rightRoom {return .right}
@@ -899,7 +908,7 @@ final class BehaviorController {
       guard let self else{return};self.begin(.walk)
       self.walkNext()
     };return}
-    let frame=workArea()
+    let frame=movementArea(cat.foot)
     let bounds=CGRect(x:frame.minX+72,y:frame.minY+28,width:max(1,frame.width-144),height:max(1,frame.height-128))
     let target=BehaviorPolicy.scaredTarget(from:cat.foot,within:bounds,previous:scaredHeading)
     scaredHeading=CGPoint(x:target.x-cat.foot.x,y:target.y-cat.foot.y)

@@ -99,7 +99,25 @@ final class ChaosCatApp: NSObject {
   @objc func clearEffects() { rules?.clearAll() }
 
   private func screenFrame() -> CGRect {
-    NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1280, height: 800)
+    primaryScreen()?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1280, height: 800)
+  }
+
+  private func primaryScreen() -> NSScreen? {
+    let numberKey = NSDeviceDescriptionKey("NSScreenNumber")
+    return NSScreen.screens.first { screen in
+      guard let number = screen.deviceDescription[numberKey] as? NSNumber else { return false }
+      return CGDirectDisplayID(number.uint32Value) == CGMainDisplayID()
+    } ?? NSScreen.screens.first
+  }
+
+  private func primaryScreenFrame() -> CGRect {
+    primaryScreen()?.frame ?? CGRect(x: 0, y: 0, width: 1280, height: 800)
+  }
+
+  private func cocoaFrame(fromQuartz frame: CGRect) -> CGRect {
+    let primaryTop = primaryScreenFrame().maxY
+    return CGRect(x: frame.minX, y: primaryTop - frame.maxY,
+                  width: frame.width, height: frame.height)
   }
 
   private func frontmostUserWindow() -> (frame: CGRect, pid: pid_t, id: Int)? {
@@ -125,10 +143,9 @@ final class ChaosCatApp: NSObject {
         height > 180
       else { continue }
 
-      let screen = NSScreen.main?.frame ?? screenFrame()
-      let convertedY = screen.maxY - y - height
+      let converted = cocoaFrame(fromQuartz:CGRect(x:x,y:y,width:width,height:height))
       let id = info[kCGWindowNumber as String] as? Int ?? 0
-      candidates.append((CGRect(x: x, y: convertedY, width: width, height: height), ownerPID, id))
+      candidates.append((converted, ownerPID, id))
     }
 
     if let foregroundPID,foregroundPID != ownPID,
@@ -176,7 +193,7 @@ final class ChaosCatApp: NSObject {
       return nil
     }
 
-    let screen = NSScreen.main?.frame ?? screenFrame()
+    let screen = primaryScreenFrame()
     let frame = CGRect(
       x: position.x,
       y: screen.maxY - position.y - size.height,
@@ -259,7 +276,7 @@ final class ChaosCatApp: NSObject {
   }
 
   private func boundsForTextRange(offset: Int, length: Int) -> CGRect? {
-    let screen = NSScreen.main?.frame ?? screenFrame()
+    let screen = primaryScreenFrame()
     guard let textElement = detectedEditorTextElement(in: screen) else { return nil }
     var range = CFRange(location: max(0, offset), length: max(0, length))
     guard let rangeValue = AXValueCreate(.cfRange, &range) else { return nil }
@@ -348,12 +365,11 @@ final class ChaosCatApp: NSObject {
   private func pointForEditorAnchor(_ anchor: [String: Any]?) -> CGPoint? {
     guard let anchor else { return nil }
     if let x=anchor["screenX"] as? Double,let y=anchor["screenY"] as? Double {
-      let primaryTop=NSScreen.screens.first?.frame.maxY ?? 0
-      return CGPoint(x:x,y:primaryTop-y)
+      return cocoaFrame(fromQuartz:CGRect(x:x,y:y,width:0,height:0)).origin
     }
     if let offset=anchor["offset"] as? Int,let rect=boundsForTextRange(offset:offset,length:1),rect.width>0,rect.height>0 {
-      let top=NSScreen.screens.first?.frame.maxY ?? 0
-      return CGPoint(x:rect.midX,y:top-rect.maxY)
+      let converted=cocoaFrame(fromQuartz:rect)
+      return CGPoint(x:converted.midX,y:converted.midY)
     }
     let editorRect = editorContentRect()
     guard editorRect.width > 240, editorRect.height > 180 else { return nil }

@@ -6,6 +6,24 @@ enum PetFacing: String { case left, right
 }
 enum RestChoice: String { case sit, lick, sleep }
 struct BehaviorPolicy {
+  // Use an actual display, not the foreground app or the bounding rectangle
+  // spanning multiple monitors (which can include gaps with no screen).
+  static func movementArea(near point:CGPoint, screens:[CGRect])->CGRect {
+    let areas=screens.filter{!$0.isNull && $0.width>0 && $0.height>0}
+    if let area=areas.first(where:{$0.contains(point)}) {return area}
+    func distance(to area:CGRect)->CGFloat {
+      let dx=max(area.minX-point.x,0,point.x-area.maxX)
+      let dy=max(area.minY-point.y,0,point.y-area.maxY)
+      return hypot(dx,dy)
+    }
+    return areas.min(by:{distance(to:$0)<distance(to:$1)}) ?? .zero
+  }
+  static func randomMovementArea(screens:[CGRect], random:()->CGFloat = { CGFloat.random(in:0..<1) })->CGRect {
+    let areas=screens.filter{!$0.isNull && $0.width>0 && $0.height>0}
+    guard !areas.isEmpty else { return .zero }
+    let index=min(areas.count-1,max(0,Int(random()*CGFloat(areas.count))))
+    return areas[index]
+  }
   static let rubbishRadius: CGFloat = 320
   // Calibrated jump and heap have separate scales/anchors. Leave 18 points
   // between the cat's nose and the heap edge at takeoff (layout audit).

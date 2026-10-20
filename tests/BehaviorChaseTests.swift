@@ -36,7 +36,7 @@ import AppKit
     let actor=BehaviorController(library:library,screen:screen,emit:{_,_ in},resolve:{a in
       guard let x=a["x"] as? Double,let y=a["y"] as? Double else{return nil}
       return CGPoint(x:x,y:y)
-    },editorRect:{.zero},workArea:{CGRect(x:0,y:0,width:2400,height:1200)},bugChanceRoll:{0})
+    },editorRect:{.zero},movementArea:{_ in CGRect(x:0,y:0,width:2400,height:1200)},bugChanceRoll:{0})
     defer {actor.shutdown();actor.cat.hide()}
     actor.cat.foot=CGPoint(x:200,y:400)
     func input(_ direction:String,x:Double) {

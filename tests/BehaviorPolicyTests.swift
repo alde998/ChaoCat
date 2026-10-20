@@ -2,6 +2,19 @@ import Foundation
 import CoreGraphics
 @main struct Tests {
  static func main() {
+  let primary=CGRect(x:0,y:25,width:1440,height:850)
+  let left=CGRect(x:-1920,y:100,width:1920,height:1080)
+  let above=CGRect(x:300,y:1200,width:1200,height:900)
+  let screens=[primary,left,above]
+  assert(BehaviorPolicy.movementArea(near:CGPoint(x:1100,y:500),screens:screens)==primary)
+  assert(BehaviorPolicy.movementArea(near:CGPoint(x:-1500,y:300),screens:screens)==left)
+  assert(BehaviorPolicy.movementArea(near:CGPoint(x:600,y:1500),screens:screens)==above)
+  assert(BehaviorPolicy.movementArea(near:CGPoint(x:600,y:1100),screens:screens)==above,"A monitor gap must resolve to a real display")
+  assert(BehaviorPolicy.movementArea(near:CGPoint(x:-2100,y:300),screens:screens)==left)
+  assert(BehaviorPolicy.movementArea(near:.zero,screens:[]) == .zero)
+  assert(BehaviorPolicy.randomMovementArea(screens:screens,random:{0})==primary)
+  assert(BehaviorPolicy.randomMovementArea(screens:screens,random:{0.999999})==above)
+  assert(BehaviorPolicy.randomMovementArea(screens:[],random:{0}) == .zero)
   assert(BehaviorPolicy.rest(roll:0.59) == .sit)
   assert(BehaviorPolicy.rest(roll:0.60) == .lick)
   assert(BehaviorPolicy.rest(roll:0.88) == .sleep)

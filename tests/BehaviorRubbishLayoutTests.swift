@@ -15,7 +15,7 @@ import AppKit
         let response:[String:Any]=["requestId":payload["requestId"]!,"clientId":"layout", "ok":true,
                                   "id":"heap","anchor":["id":"heap","lineHeight":0.0]]
         DispatchQueue.main.async {actor.handle(type:"behavior.response",payload:response,source:"vscode-extension")}
-      },resolve:{_ in CGPoint(x:heap.x,y:heap.y-18)},editorRect:{area},workArea:{area})
+      },resolve:{_ in CGPoint(x:heap.x,y:heap.y-18)},editorRect:{area},movementArea:{_ in area})
       actor.handle(type:"client.hello",payload:["clientId":"layout","active":true],source:"vscode-extension")
       actor.cat.foot=CGPoint(x:heap.x+(left ? 260:-260),y:heap.y)
       actor.rubbish()

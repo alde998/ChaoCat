@@ -47,8 +47,26 @@ import AppKit
         if type == "behavior.request",let operation=payload["operation"] as? String { requests.append(operation) }
       },resolve:{_ in nil},
       editorRect:{firstArea},workArea:{foreground == "window-a" ? firstArea : secondArea},
+      movementArea:{point in BehaviorPolicy.movementArea(near:point,screens:[screen.visibleFrame])},
       workIdentity:{foreground},isEditorForeground:{_ in editorForeground})
     precondition(actor.cat.view.preciseHitTest,"Every cat state should use sprite transparency for hit testing")
+    // A foreground window covering only the right half of the display must
+    // not constrain dragging or chasing on the left half of the same screen.
+    let start=CGPoint(x:firstArea.midX,y:firstArea.midY)
+    let outside=CGPoint(x:screen.visibleFrame.minX+100,y:firstArea.midY)
+    actor.cat.foot=start
+    actor.cat.view.pressed?(0)
+    actor.cat.view.dragged?(CGPoint(x:outside.x-start.x,y:0),1)
+    precondition(actor.cat.foot==outside,"Dragging must reach the screen outside the foreground app")
+    RunLoop.main.run(until:Date().addingTimeInterval(0.6))
+    precondition(actor.cat.foot==outside,"Heartbeat must not snap the cat back into the app")
+    actor.cat.view.dragged?(CGPoint(x:-screen.visibleFrame.width*2,y:0),2)
+    precondition(actor.cat.foot.x==screen.visibleFrame.minX+72,"Dragging must still stop at the screen edge")
+    actor.cat.foot=outside
+    actor.chase()
+    precondition(actor.bug.foot.x<firstArea.minX,"Chase targets must also be allowed outside the app")
+    actor.clearAll()
+    actor.cat.foot=start
     actor.handle(type:"client.hello",payload:["clientId":"vscode-extension:test","active":true],source:"vscode-extension")
     actor.poop()
 
@@ -81,6 +99,6 @@ import AppKit
     actor.poop()
     wait("foreground editor receives target request"){requests.contains("target.pick")}
     actor.cat.hide()
-    print("PASS: floating poop click, foreground window bounds, and background editor gating")
+    print("PASS: screen-wide dragging/chase, screen edge limits, floating poop click/window ownership, and background editor gating")
   }
 }
