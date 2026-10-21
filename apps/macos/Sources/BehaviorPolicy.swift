@@ -12,8 +12,9 @@ struct BehaviorPolicy {
     let areas=screens.filter{!$0.isNull && $0.width>0 && $0.height>0}
     if let area=areas.first(where:{$0.contains(point)}) {return area}
     func distance(to area:CGRect)->CGFloat {
-      let dx=max(area.minX-point.x,0,point.x-area.maxX)
-      let dy=max(area.minY-point.y,0,point.y-area.maxY)
+      let zero: CGFloat = 0
+      let dx: CGFloat = max(area.minX-point.x, zero, point.x-area.maxX)
+      let dy: CGFloat = max(area.minY-point.y, zero, point.y-area.maxY)
       return hypot(dx,dy)
     }
     return areas.min(by:{distance(to:$0)<distance(to:$1)}) ?? .zero
@@ -21,7 +22,8 @@ struct BehaviorPolicy {
   static func randomMovementArea(screens:[CGRect], random:()->CGFloat = { CGFloat.random(in:0..<1) })->CGRect {
     let areas=screens.filter{!$0.isNull && $0.width>0 && $0.height>0}
     guard !areas.isEmpty else { return .zero }
-    let index=min(areas.count-1,max(0,Int(random()*CGFloat(areas.count))))
+    let rawIndex: Int = Int(random()*CGFloat(areas.count))
+    let index: Int = min(areas.count-1,max(0,rawIndex))
     return areas[index]
   }
   static let rubbishRadius: CGFloat = 320

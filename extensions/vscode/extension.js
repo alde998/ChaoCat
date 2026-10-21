@@ -1,11 +1,17 @@
 const vscode = require('vscode');
 const http = require('http');
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { MarkerStore, poopRanges } = require('./markers.cjs');
 const SOURCE='vscode-extension';
-const BUILD='20261017.1';
+const BUILD='20261021.1';
 const PORT=Number(process.env.CHAOS_CAT_PORT)||44777;
 const CLIENT=SOURCE+':'+process.pid+':'+Math.random().toString(16).slice(2);
+const TOKEN_FILE=process.env.CHAOS_CAT_BRIDGE_TOKEN_FILE||path.join(os.tmpdir(),`chaos-cat-bridge-${typeof process.getuid==='function'?process.getuid():'user'}-${PORT}.token`);
+function bridgeToken() {
+  try { return (process.env.CHAOS_CAT_BRIDGE_TOKEN||fs.readFileSync(TOKEN_FILE,'utf8')).trim(); } catch { return ''; }
+}
 // Keep the displacement as one marker, but shape it like a pile: seven rows
 // and five columns cover more area than the 288x180 heap overlay.
 const RUBBISH=Array.from({length:7},()=>Array(5).fill('/rubbish/').join(' ')).join('\n');
@@ -17,8 +23,8 @@ let lastClearAt=0;
 const docTexts=new Map();
 function transport(method,event) {
   return new Promise((resolve,reject)=>{
-    const req=http.request({hostname:'127.0.0.1',port:PORT,path:method==='GET'?'/api/events?limit=200':'/api/events',method,headers:{'content-type':'application/json'},timeout:1500},res=>{
-      let data='';res.on('data',d=>data+=d);res.on('end',()=>{try{resolve(JSON.parse(data))}catch(e){reject(e)}});
+    const req=http.request({hostname:'127.0.0.1',port:PORT,path:method==='GET'?'/api/events?limit=200':'/api/events',method,headers:{'content-type':'application/json','x-chaos-cat-token':bridgeToken()},timeout:1500},res=>{
+      let data='';res.on('data',d=>data+=d);res.on('end',()=>{if(res.statusCode<200||res.statusCode>=300){reject(new Error(`bridge rejected request: ${res.statusCode}`));return}try{resolve(JSON.parse(data))}catch(e){reject(e)}});
     });
     req.on('timeout',()=>req.destroy(new Error('bridge timeout')));req.on('error',reject);
     req.end(event ? JSON.stringify(event):undefined);
@@ -77,7 +83,6 @@ function save() { return context.workspaceState.update('behaviorMarkers.v2',stor
 function render() {
   for(const editor of vscode.window.visibleTextEditors) {
     remember(editor.document);
-    if(!applying)scanPoop(editor);
     const records=store.forDocument(editor.document.uri.toString(),editor.document.getText());
     const ranges=kind=>records.filter((r,i)=>r.kind===kind&&!records.slice(0,i).some(other=>other.kind===r.kind&&other.offset===r.offset&&other.text===r.text)).map(r=>new vscode.Range(editor.document.positionAt(r.offset),editor.document.positionAt(r.offset+r.text.length)));
     editor.setDecorations(poopDecoration,ranges('poop'));editor.setDecorations(rubbishDecoration,ranges('rubbish'));
@@ -104,12 +109,7 @@ async function remove(id) {
   try {const ok=await vscode.workspace.applyEdit(edit);if(ok)store.forget(id);remember(doc);await save();render();return ok;}
   finally {applying=false;}
 }
-function scanPoop(editor) {
-  const text=editor.document.getText(),uri=editor.document.uri.toString();
-  for(const m of text.matchAll(/\/shit\//g)) if(!store.forDocument(uri,text,'poop').some(r=>r.offset===m.index)) store.add(uri,m.index,m[0],'poop');
-}
 function poopAt(document,offset) {
-  scanPoop({document});
   const records=store.forDocument(document.uri.toString(),document.getText(),'poop');
   // Prefer the token under the caret at an adjacent-token boundary. The end
   // position also covers the after-decoration without touching nearby code.
@@ -144,7 +144,7 @@ async function handle(p) {
     return r?{ok:true,id:r.id,anchor:markerAnchor(editor,r)}:{ok:false,reason:'edit-rejected'};
   }
   if(p.operation==='poop.list') {
-    scanPoop(editor);render();await save();
+    render();await save();
     return {ok:true,anchors:store.forDocument(editor.document.uri.toString(),editor.document.getText(),'poop').map(r=>markerAnchor(editor,r))};
   }
   if(p.operation==='marker.locate') {
@@ -158,11 +158,9 @@ async function releaseRubbish() {
   for(const r of [...store.records].filter(r=>r.valid&&r.kind==='rubbish'))await remove(r.id);
 }
 async function clearAllPoop() {
-  // Include all affected documents, even closed tabs, plus the current editor
-  // for marks left by older versions. Unrelated open files are not searched.
-  const uris=new Set(store.records.filter(r=>r.kind==='poop').map(r=>r.uri));
-  const current=vscode.window.activeTextEditor?.document;
-  if(current)uris.add(current.uri.toString());
+  // Include closed tabs only when we own a marker in them. Literal /shit/
+  // text and unverified records from older builds are never cleanup targets.
+  const uris=new Set(store.records.filter(r=>r.valid&&r.owner==='chaos-cat'&&r.kind==='poop').map(r=>r.uri));
   const docs=[],failures=[];
   for(const uri of uris) {
     try {
@@ -173,8 +171,8 @@ async function clearAllPoop() {
   const edit=new vscode.WorkspaceEdit();let count=0;
   for(const doc of docs) {
     remember(doc);
-    for(const range of poopRanges(doc.getText())) {
-      edit.delete(doc.uri,new vscode.Range(doc.positionAt(range.offset),doc.positionAt(range.offset+range.length)));count+=range.count;
+    for(const marker of store.forDocument(doc.uri.toString(),doc.getText(),'poop')) {
+      edit.delete(doc.uri,new vscode.Range(doc.positionAt(marker.offset),doc.positionAt(marker.offset+marker.text.length)));count+=1;
     }
   }
   applying=true;
@@ -254,7 +252,7 @@ function activate(ctx) {
   }));
   ctx.subscriptions.push(vscode.commands.registerCommand('chaosCat.toggleMutation',()=>vscode.window.showInformationMessage('小猫使用真实 /shit/ 和临时 /rubbish/ 标记；清理时只删除对应标记。')));
   ctx.subscriptions.push(vscode.workspace.onDidChangeTextDocument(e=>{
-    store.changes(e.document.uri.toString(),e.contentChanges);remember(e.document);save();render();
+    store.changes(e.document.uri.toString(),e.contentChanges,{undo:e.reason===vscode.TextDocumentChangeReason.Undo,redo:e.reason===vscode.TextDocumentChangeReason.Redo});remember(e.document);save();render();
     const editor=activeEditor();if(applying||!editor||editor.document!==e.document||!e.contentChanges.length)return;
     if(Date.now()-lastInput<100)return;lastInput=Date.now();
     const c=e.contentChanges[e.contentChanges.length-1],offset=Math.min(e.document.getText().length,c.rangeOffset+c.text.length);

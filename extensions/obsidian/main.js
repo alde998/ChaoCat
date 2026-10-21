@@ -1,10 +1,17 @@
 const {Plugin,MarkdownView,requestUrl}=require('obsidian');
+const fs=require('fs');
+const os=require('os');
 const {MarkerStore,poopRanges}=require('./markers.cjs');
 const {ChaosEditorAdapter}=require('./behavior-adapter');
 module.exports=class ChaosCatPlugin extends Plugin {
   async onload(){
-    const post=async(type,payload)=>{try{await requestUrl({url:'http://127.0.0.1:44777/api/events',method:'POST',contentType:'application/json',body:JSON.stringify({source:'obsidian-plugin',type,payload,createdAt:new Date().toISOString()})})}catch{}};
-    this.adapter=new ChaosEditorAdapter({source:'obsidian-plugin',MarkerStore,poopRanges,load:(await this.loadData())?.markers||[],save:markers=>this.saveData({markers}),active:()=>document.hasFocus()?this.current():null,documents:()=>this.app.workspace.getLeavesOfType('markdown').map(l=>this.wrap(l.view)).filter(Boolean),post,receive:async()=> (await requestUrl({url:'http://127.0.0.1:44777/api/events?limit=100'})).json});
+    const port=Number(process.env.CHAOS_CAT_PORT)||44777;
+    const tokenFile=process.env.CHAOS_CAT_BRIDGE_TOKEN_FILE||require('path').join(os.tmpdir(),`chaos-cat-bridge-${typeof process.getuid==='function'?process.getuid():'user'}-${port}.token`);
+    const bridgeToken=()=>{try{return (process.env.CHAOS_CAT_BRIDGE_TOKEN||fs.readFileSync(tokenFile,'utf8')).trim()}catch{return ''}};
+    const headers=()=>({'x-chaos-cat-token':bridgeToken()});
+    const bridgeUrl=`http://127.0.0.1:${port}/api/events`;
+    const post=async(type,payload)=>{try{await requestUrl({url:bridgeUrl,method:'POST',contentType:'application/json',headers:headers(),body:JSON.stringify({source:'obsidian-plugin',type,payload,createdAt:new Date().toISOString()})})}catch{}};
+    this.adapter=new ChaosEditorAdapter({source:'obsidian-plugin',MarkerStore,poopRanges,load:(await this.loadData())?.markers||[],save:markers=>this.saveData({markers}),active:()=>document.hasFocus()?this.current():null,documents:()=>this.app.workspace.getLeavesOfType('markdown').map(l=>this.wrap(l.view)).filter(Boolean),post,receive:async()=> (await requestUrl({url:`${bridgeUrl}?limit=100`,headers:headers()})).json});
     const actions=[['poop-chaos','拉屎','poopChaos'],['box-dive','跳垃圾堆','rubbish'],['bug-chase','追虫','bugChase'],['clear-effects','埋屎清理','bury'],['calm','休息','calm']];
     for(const [id,name,action] of actions)this.addCommand({id,name,callback:()=>post('pet.actionRequested',{action,active:true})});
     this.addRibbonIcon('cat','小猫：追虫',()=>post('pet.actionRequested',{action:'bugChase',active:true}));

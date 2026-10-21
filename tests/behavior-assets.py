@@ -1,7 +1,24 @@
 from pathlib import Path
 from PIL import Image,ImageChops,ImageStat
 import json
+import sys
 root=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(root/'scripts'))
+from normalize_chase_shadows import normalize_frame as normalize_shadow
+collar_greens={(108,135,99),(137,169,121),(160,186,136),(174,203,151),(191,213,168)}
+
+def only_collar_color_changed(actual, expected):
+ bg=Image.new('RGBA', actual.size, '#ddd')
+ a=Image.alpha_composite(bg,actual).convert('RGB')
+ e=Image.alpha_composite(bg,expected).convert('RGB')
+ bounds=ImageChops.difference(a,e).getbbox()
+ if bounds is None:return True
+ if not (500<=bounds[0]<bounds[2]<=1150 and 400<=bounds[1]<bounds[3]<=850):return False
+ for new,old in zip(a.crop(bounds).get_flattened_data(),e.crop(bounds).get_flattened_data()):
+  if new==old:continue
+  r,g,b=old
+  if new not in collar_greens or not (r-g<=38 and g-r<65 and 2<=g-b<75 and g>75 and b>45 and r<245):return False
+ return True
 folder=root/'apps/macos/Assets/Behavior';catalog=json.loads((folder/'catalog.json').read_text());report=[]
 assert len(catalog)==70
 for name,c in catalog.items():
@@ -15,10 +32,15 @@ for name,c in catalog.items():
  im=Image.open(folder/c['file']);assert im.n_frames==c['frames'],(name,im.n_frames,c['frames'])
  assert im.size==(c['width'],c['height'])
  assert (im.info.get('loop')==0)==c['loop'],(name,'GIF repeat flag')
- duration=0
+ duration=0;collar_visible=False
  for i in range(im.n_frames):
-  im.seek(i);duration+=im.info['duration'];a=im.convert('RGBA').getchannel('A')
+  im.seek(i);duration+=im.info['duration'];rgba=im.convert('RGBA');a=rgba.getchannel('A')
+  if not collar_visible:
+   colors=rgba.getcolors(maxcolors=512) or []
+   collar_visible=sum(count for count,color in colors if color[3]>0 and color[:3] in collar_greens)>=50
   assert a.getbbox() is not None,(name,i,'empty');assert a.getextrema()==(0,255),(name,i,'opaque')
+ if not name.startswith(('bug-','rubbish-tail-')):
+  assert collar_visible,(name,'stable green collar palette missing')
  assert abs(duration/1000-c['duration'])<0.001,(name,duration)
  if c.get('placeholder'):
   original=Image.open(folder.parent/c['source'])
@@ -58,11 +80,16 @@ for name,c in catalog.items():
   original=Image.open(root/'media/chase-roll-sources'/f'{name}-before-trim.gif')
   for i,source_index in enumerate(c['retainedFrames']):
    im.seek(i);original.seek(source_index)
-   actual=im.convert('RGBA');expected=original.convert('RGBA')
+   actual=im.convert('RGBA')
+   expected,_=normalize_shadow(original)
    assert actual.getchannel('A').tobytes()==expected.getchannel('A').tobytes()
-   bg=Image.new('RGBA',im.size,'#ddd')
-   assert Image.alpha_composite(bg,actual).tobytes()==Image.alpha_composite(bg,expected).tobytes(),(name,i,'retained pixels changed')
+   assert only_collar_color_changed(actual,expected),(name,i,'retained pixels changed outside collar')
    assert actual.getchannel('A').getbbox()[1]>300,(name,i,'clipped ears remain')
+ if name.startswith(('chase-enter-','catch-','chase-exit-')):
+  for i in range(im.n_frames):
+   im.seek(i)
+   shadow=im.convert('RGBA').crop((0,850,im.width,im.height))
+   assert not any(a>0 and r<=40 and g<=100 and b>=g+15 for r,g,b,a in shadow.get_flattened_data()),(name,i,'blue ground shadow')
  if c['loop']:
   im.seek(0);first=im.convert('RGBA');im.seek(im.n_frames-1);last=im.convert('RGBA')
   if c.get('source')=='drag-click-lift-drop.mp4':

@@ -178,6 +178,8 @@ def main():
   else:
    install_drag_placeholder(catalog, OUT)
   (OUT/'catalog.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n')
+  from normalize_collar_colors import rewrite_assets
+  rewrite_assets()
  sheet=Image.new('RGB',(1000,((len(review)+4)//5)*150),'#d5d9df');d=ImageDraw.Draw(sheet)
  for j,(name,im) in enumerate(review):
   im.thumbnail((195,125));x=j%5*200;y=j//5*150;sheet.paste(im,(x,y),im);d.text((x,y+127),name,fill='black')

@@ -2,7 +2,7 @@
   "name": "chaos-cat",
   "displayName": "Chaos Cat",
   "description": "连接原生桌面小猫：输入追虫、垃圾堆占位、三次排便与同步埋屎。",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "local-dev",
   "engines": {
     "vscode": "^1.79.0"

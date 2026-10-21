@@ -1,12 +1,16 @@
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 const port=44817,base=`http://127.0.0.1:${port}`,children=[];
 const logs=[],events=[],seen=new Set(),markers=new Map();let state,inserted=0,removed=0,heapCreated=0,timer,heartbeat,busy=false,fixture='const value = 42;';
 const original=fixture;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const tokenFile=process.env.CHAOS_CAT_BRIDGE_TOKEN_FILE||`${os.tmpdir()}/chaos-cat-bridge-${typeof process.getuid==='function'?process.getuid():'user'}-${port}.token`;
+let bridgeToken='';
+async function authHeaders(){if(!bridgeToken)bridgeToken=(await fs.readFile(tokenFile,'utf8')).trim();return {'content-type':'application/json','x-chaos-cat-token':bridgeToken};}
 async function until(fn,label,ms=30000){const start=Date.now();while(!fn()){assert.ok(Date.now()-start<ms,`timeout: ${label}; state=${JSON.stringify(state)}`);await delay(100);}}
-async function post(type,payload={}){await fetch(base+'/api/events',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type,payload:{...payload,clientId:'test-window-1'},source:'vscode-extension'})});}
+async function post(type,payload={}){await fetch(base+'/api/events',{method:'POST',headers:await authHeaders(),body:JSON.stringify({type,payload:{...payload,clientId:'test-window-1'},source:'vscode-extension'})});}
 const anchor=id=>({id,uri:'fixture',screenX:480,screenY:470,line:0,character:6,lineCount:1,visibleStartLine:0,visibleEndLine:0});
 async function handle(p){
  assert.equal(p.target,'test-window-1','request must target the active window instance');
@@ -28,12 +32,12 @@ async function handle(p){
 function child(command,args,env){const c=spawn(command,args,{env:{...process.env,...env},stdio:['ignore','pipe','pipe']});c.stdout.on('data',d=>logs.push(String(d)));c.stderr.on('data',d=>logs.push(String(d)));children.push(c);return c;}
 try{
  child(process.execPath,['apps/bridge/server.mjs'],{CHAOS_CAT_PORT:String(port)});
- for(let n=0;n<30;n++){try{await fetch(base+'/api/health');break}catch{await delay(100)}}
+ for(let n=0;n<30;n++){try{bridgeToken=(await fs.readFile(tokenFile,'utf8')).trim();const response=await fetch(base+'/api/health',{headers:{'x-chaos-cat-token':bridgeToken}});const health=await response.json();if(response.ok&&health.authVersion===1)break}catch{await delay(100)}}
  child('apps/macos/.build/release/ChaosCatMac',[],{CHAOS_CAT_PORT:String(port),CHAOS_CAT_TEST:'1',CHAOS_CAT_TEST_SPEED:'12'});
  heartbeat=setInterval(()=>post('client.hello',{active:true,protocol:2}),400);
  timer=setInterval(async()=>{
   if(busy)return;busy=true;
-  try{const data=await (await fetch(base+'/api/events?limit=200')).json();for(const e of data.events){if(seen.has(e.id))continue;seen.add(e.id);if(e.type==='behavior.state')state=e.payload;if(e.type==='behavior.request')await handle(e.payload);}}finally{busy=false;}
+  try{const data=await (await fetch(base+'/api/events?limit=200',{headers:{'x-chaos-cat-token':bridgeToken}})).json();for(const e of data.events){if(seen.has(e.id))continue;seen.add(e.id);if(e.type==='behavior.state')state=e.payload;if(e.type==='behavior.request')await handle(e.payload);}}finally{busy=false;}
  },40);
  await until(()=>state,'actor starts');
  await post('pet.actionRequested',{action:'poopChaos'});

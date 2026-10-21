@@ -40,9 +40,9 @@ class ChaosEditorAdapter {
     try {
       for(const doc of this.documents().filter(d=>uris.has(d.uri))) {
         this.remember(doc);
-        const ranges=this.poopRanges(doc.text());
-        for(const r of ranges.reverse()) {
-          if(await doc.replace(r.offset,r.length,''))count+=r.count;else ok=false;
+        const markers=this.store.forDocument(doc.uri,doc.text(),'poop');
+        for(const r of markers.sort((a,b)=>b.offset-a.offset)) {
+          if(await doc.replace(r.offset,r.text.length,''))count+=1;else ok=false;
         }
         this.remember(doc);
       }
@@ -74,8 +74,7 @@ class ChaosEditorAdapter {
       } finally {this.applying=false;}
     }
     if(p.operation==='poop.list') {
-      const text=doc.text();for(const m of text.matchAll(/\/shit\//g))if(!this.store.forDocument(doc.uri,text,'poop').some(r=>r.offset===m.index))this.store.add(doc.uri,m.index,m[0],'poop');
-      await this.persist();return {ok:true,anchors:this.store.forDocument(doc.uri,text,'poop').map(r=>this.anchor(doc,r))};
+      const text=doc.text();await this.persist();return {ok:true,anchors:this.store.forDocument(doc.uri,text,'poop').map(r=>this.anchor(doc,r))};
     }
     if(p.operation==='marker.locate') {
       const r=this.store.get(p.id);return r&&r.uri===doc.uri&&this.store.verify(r,doc.text())?{ok:true,anchor:this.anchor(doc,r)}:{ok:false};

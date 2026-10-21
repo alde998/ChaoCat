@@ -1,6 +1,7 @@
 // Runs inside VS Code's real extension host, not a mock of its API.
 const vscode=require('vscode');
 const assert=require('node:assert/strict');
+const fsSync=require('node:fs');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const os=require('node:os');
@@ -8,8 +9,10 @@ const http=require('node:http');
 const root=path.resolve(__dirname,'..');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const evidence=[],seen=new Set();let state,client;
+const tokenFile=process.env.CHAOS_CAT_BRIDGE_TOKEN_FILE||path.join(os.tmpdir(),`chaos-cat-bridge-${typeof process.getuid==='function'?process.getuid():'user'}-${Number(process.env.CHAOS_CAT_PORT)||44777}.token`);
+const bridgeToken=()=>{try{return (process.env.CHAOS_CAT_BRIDGE_TOKEN||fsSync.readFileSync(tokenFile,'utf8')).trim()}catch{return ''}};
 function request(method,body){return new Promise((resolve,reject)=>{
- const r=http.request({hostname:'127.0.0.1',port:Number(process.env.CHAOS_CAT_PORT),path:'/api/events?limit=250',method,headers:{'content-type':'application/json'}},res=>{let s='';res.on('data',d=>s+=d);res.on('end',()=>{try{resolve(JSON.parse(s))}catch(e){reject(e)}})});
+ const r=http.request({hostname:'127.0.0.1',port:Number(process.env.CHAOS_CAT_PORT),path:'/api/events?limit=250',method,headers:{'content-type':'application/json','x-chaos-cat-token':bridgeToken()}},res=>{let s='';res.on('data',d=>s+=d);res.on('end',()=>{try{resolve(JSON.parse(s))}catch(e){reject(e)}})});
  r.on('error',reject);r.end(body?JSON.stringify(body):undefined);
 });}
 async function poll(){for(const e of (await request('GET')).events){if(seen.has(e.id))continue;seen.add(e.id);if(e.type==='behavior.state')state=e.payload;if(['behavior.request','behavior.response','editor.textChanged','cleanup.requested','cleanup.completed'].includes(e.type))evidence.push(e);}}
@@ -120,10 +123,14 @@ exports.run=async()=>{
   assert.equal(evidence.find(e=>e.payload.requestId==='stale-after-clear'&&e.type==='behavior.response').payload.reason,'cancelled-by-cleanup');
   assert.equal(doc.getText(),'typed user edit\n'+original);
   await doc.save();await second.save();assert.equal(await fs.readFile(secondPath,'utf8'),secondOriginal);
-  // The extension's own clear command also works immediately on legacy marks.
+  // User-authored /shit/ text remains ordinary text, while a generated marker
+  // is still removed by the extension's own clear command.
   await vscode.window.activeTextEditor.edit(e=>e.insert(new vscode.Position(0,0),'/shi/shit/t//shit/'));
+  const userAuthoredText=doc.getText();
+  await vscode.commands.executeCommand('chaosCat.triggerPoop');
+  await until(()=>doc.getText().split('/shit/').length-1===userAuthoredText.split('/shit/').length-1+3,'generated markers before extension clear');
   await vscode.commands.executeCommand('chaosCat.clearEffects');
-  assert.equal(doc.getText(),'typed user edit\n'+original);
+  assert.equal(doc.getText(),userAuthoredText);
   const responses=evidence.filter(e=>e.type==='behavior.response');
   assert.ok(responses.length>=14);assert.ok(responses.every(e=>e.payload.ok||e.payload.reason==='cancelled-by-cleanup'),JSON.stringify(responses.filter(e=>!e.payload.ok)));
   await fs.writeFile(path.join(root,'docs/vscode-host-validation.json'),JSON.stringify({passed:true,host:vscode.version,build:state.build,extensionVersion:ext.packageJSON.version,client,checks:['real editor input → native chase','3 /shit/ insertions in a JavaScript document','independent undo and redo of a marker','saved file contains literal /shit/ text','burial deletes each matching marker and saves clean file','rubbish displacement → discovery/run/jump/tail','release preserves concurrent edits','poop interruption → 12 scattered /shit/ markers plus frightened run','immediate cleanup across current and closed tabs','cleanup cancels in-flight poop and late insertion requests','extension clear command removes all legacy markers'],events:evidence},null,2)+'\n');

@@ -2,8 +2,27 @@ import AppKit
 import ApplicationServices
 import Foundation
 
-private let bridgeBase = "http://127.0.0.1:" + (ProcessInfo.processInfo.environment["CHAOS_CAT_PORT"] ?? "44777")
+private let bridgePort = ProcessInfo.processInfo.environment["CHAOS_CAT_PORT"] ?? "44777"
+private let bridgeBase = "http://127.0.0.1:" + bridgePort
 private let bridgeURL = URL(string: bridgeBase + "/api/events")!
+private let bridgeTokenFile: URL = {
+  if let configured = ProcessInfo.processInfo.environment["CHAOS_CAT_BRIDGE_TOKEN_FILE"], !configured.isEmpty {
+    return URL(fileURLWithPath: configured)
+  }
+  return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+    .appendingPathComponent("chaos-cat-bridge-\(getuid())-\(bridgePort).token")
+}()
+
+private func bridgeToken() -> String? {
+  if let configured = ProcessInfo.processInfo.environment["CHAOS_CAT_BRIDGE_TOKEN"], !configured.isEmpty {
+    return configured
+  }
+  return try? String(contentsOf: bridgeTokenFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func authenticateBridge(_ request: inout URLRequest) {
+  if let token = bridgeToken(), !token.isEmpty { request.setValue(token, forHTTPHeaderField: "x-chaos-cat-token") }
+}
 
 private func behaviorCatalogURL() -> URL? {
   let manager = FileManager.default
@@ -90,6 +109,10 @@ final class ChaosCatApp: NSObject {
     pollTimer?.invalidate()
     pollTimer = nil
     rules?.shutdown()
+    if let process = bridgeProcess, process.isRunning {
+      process.terminate()
+    }
+    bridgeProcess = nil
   }
 
   @objc func calm() { rules?.performDebugAction("calm") }
@@ -451,8 +474,11 @@ final class ChaosCatApp: NSObject {
   private func checkBridgeReachable(completion: @escaping (Bool) -> Void) {
     var request = URLRequest(url: URL(string: bridgeBase + "/api/health")!)
     request.timeoutInterval = 0.6
+    authenticateBridge(&request)
     URLSession.shared.dataTask(with: request) { data, response, _ in
-      let ok = (response as? HTTPURLResponse)?.statusCode == 200 || data != nil
+      let status = (response as? HTTPURLResponse)?.statusCode
+      let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+      let ok = status == 200 && (json?["authVersion"] as? Int) == 1
       DispatchQueue.main.async {
         completion(ok)
       }
@@ -470,6 +496,9 @@ final class ChaosCatApp: NSObject {
     process.currentDirectoryURL = bridgeRoot
     process.executableURL = nodeURL
     process.arguments = [bridgeRoot.appendingPathComponent("apps/bridge/server.mjs").path]
+    var environment = ProcessInfo.processInfo.environment
+    environment["CHAOS_CAT_BRIDGE_TOKEN_FILE"] = bridgeTokenFile.path
+    process.environment = environment
     process.standardOutput = FileHandle.standardOutput
     process.standardError = FileHandle.standardError
     process.terminationHandler = { [weak self] _ in
@@ -518,7 +547,9 @@ final class ChaosCatApp: NSObject {
   private func fetchBridgeEvents() {
     guard !bridgeFetchPending else{return}
     bridgeFetchPending=true
-    URLSession.shared.dataTask(with: bridgeURL.appending(queryItems: [URLQueryItem(name: "limit", value: "80")])) { [weak self] data, _, _ in
+    var request = URLRequest(url: bridgeURL.appending(queryItems: [URLQueryItem(name: "limit", value: "80")]))
+    authenticateBridge(&request)
+    URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
       guard let self else { return }
       DispatchQueue.main.async { self.bridgeFetchPending=false }
       guard let data else{return}
@@ -562,6 +593,7 @@ final class ChaosCatApp: NSObject {
   private func postEvent(type: String, payload: [String: Any]) {
     var request = URLRequest(url: bridgeURL)
     request.httpMethod = "POST"
+    authenticateBridge(&request)
     request.setValue("application/json", forHTTPHeaderField: "content-type")
     request.httpBody = try? JSONSerialization.data(withJSONObject: [
       "id": "\(Date().timeIntervalSince1970)-\(UUID().uuidString)",

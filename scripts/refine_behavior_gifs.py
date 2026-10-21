@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from calibrate_behavior_layout import calibrate
+from normalize_chase_shadows import normalize_frame
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "apps/macos/Assets/Behavior"
@@ -24,7 +25,10 @@ def remove_chase_bleed(frame):
     # The flight arc is pale cyan; the cat's collar is green with much less blue.
     bleed = visible & (red >= 100) & (green > red + 8) & (blue > red + 8) & (abs(green - blue) <= 30)
     rgba[bleed, 3] = 0
-    return Image.fromarray(rgba, "RGBA"), int(bleed.sum())
+    # Keep future rebuilds consistent with the neutral ground shadow used by
+    # the shipping GIFs, including on a dark desktop background.
+    cleaned, _ = normalize_frame(Image.fromarray(rgba, "RGBA"))
+    return cleaned, int(bleed.sum())
 
 
 def encode_chase_frame(frame, collar_region=None):
@@ -237,6 +241,8 @@ def main():
             print(f"{name}: cleared {removed} trail pixels", flush=True)
     calibrate(catalog)
     catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
+    from normalize_collar_colors import rewrite_assets
+    rewrite_assets()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,16 @@ export const BRIDGE_PORT = 44777;
 export const BRIDGE_ORIGIN = `http://localhost:${BRIDGE_PORT}`;
 export const BRIDGE_WS = `ws://localhost:${BRIDGE_PORT}/ws`;
 
+export function bridgeToken() {
+  try {
+    return globalThis.CHAOS_CAT_BRIDGE_TOKEN
+      || globalThis.localStorage?.getItem("chaos-cat-bridge-token")
+      || "";
+  } catch {
+    return "";
+  }
+}
+
 export const PetState = Object.freeze({
   Calm: "calm",
   PoopChaos: "poopChaos",
@@ -30,9 +40,13 @@ export function makeEvent(type, payload = {}, source = "unknown") {
 }
 
 export async function postEvent(event, origin = BRIDGE_ORIGIN) {
+  const token = bridgeToken();
   const response = await fetch(`${origin}/api/events`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { "x-chaos-cat-token": token } : {})
+    },
     body: JSON.stringify(event)
   });
 
@@ -44,7 +58,8 @@ export async function postEvent(event, origin = BRIDGE_ORIGIN) {
 }
 
 export function connectBridge({ onEvent, onOpen, onClose, onError } = {}) {
-  const socket = new WebSocket(BRIDGE_WS);
+  const token = bridgeToken();
+  const socket = new WebSocket(token ? `${BRIDGE_WS}?token=${encodeURIComponent(token)}` : BRIDGE_WS);
 
   socket.addEventListener("open", () => {
     onOpen?.(socket);

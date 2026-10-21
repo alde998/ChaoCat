@@ -30,6 +30,22 @@ test('recovery checks context before deleting a saved marker',()=>{
 test('markers in unrelated documents never move',()=>{
  const s=new MarkerStore(),r=s.add('b',4,'/shit/','poop');s.changes('a',[{rangeOffset:0,rangeLength:10,text:''}]);assert.equal(r.offset,4);assert.equal(r.valid,true);
 });
+test('legacy records cannot claim user-authored text after upgrade',()=>{
+ const s=new MarkerStore([{id:'old',uri:'a',offset:1,text:'/shit/',kind:'poop',valid:true}]);
+ assert.equal(s.get('old'),undefined);
+ assert.deepEqual(s.forDocument('a','x/shit/y','poop'),[]);
+ assert.deepEqual(s.snapshot(new Map([['a','x/shit/y']])),[]);
+});
+test('redo restores ownership only for a known undone insertion',()=>{
+ const s=new MarkerStore(),r=s.add('a',1,'/shit/','poop');
+ s.changes('a',[{rangeOffset:1,rangeLength:6,text:''}],{undo:true});
+ assert.equal(s.get(r.id),undefined);
+ s.changes('a',[{rangeOffset:1,rangeLength:0,text:'/shit/'}],{redo:true});
+ assert.equal(s.forDocument('a','x/shit/y','poop').length,1);
+ s.changes('a',[{rangeOffset:1,rangeLength:6,text:''}],{undo:true});
+ s.changes('a',[{rangeOffset:1,rangeLength:0,text:'/shit/'}]);
+ assert.equal(s.forDocument('a','x/shit/y','poop').length,0,'manually typed text remains user-owned');
+});
 test('bulk cleanup finds adjacent and nested legacy marks in original UTF-16 ranges',()=>{
  let text='🐈const x = 1;';const original=text;
  text=text.slice(0,5)+'/shit/'+text.slice(5);
